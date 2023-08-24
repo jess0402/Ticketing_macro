@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>티켓팅 매크로</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+.content-wrapper{
+    padding: 10px;
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    transform: translate(-50%, -50%);
+    width: 30%;
+}
+.content {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    display: flex;
+    flex-direction: column;
+
+    /* border: 1px solid #c6c6c6; */
+    /* width: 40%; */
+    /* height: 80%; */
+}
+.span_title{
+    margin-bottom: 5px;
+    margin-left: 3px;
+}
+.input_text{
+    padding: 8px;
+    margin-bottom: 10px;
+
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border: 1px solid #c6c6c6;
+}
+.content-2nd{
+    display: flex;
+    justify-content: space-between;
+}
+.div-flex{
+    display: flex;
+    flex-direction: column;
+    width: 49%;
+}
+#btn_run{
+    position: relative;
+    border: none;
+    display: inline-block;
+    padding: 10px 25px;
+    border-radius: 15px;
+    font-family: "paybooc-Light", sans-serif;
+    /* box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2); */
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.25s;
+
+    background-color: #f8e6e0;
+    color: #6e6e6e;
+
+    letter-spacing: 5px;
+    width: 100%;
+}
+
+#btn_run:active {
+    transform: scale(1.5);
+}
+
+#btn_run:hover {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+
+</style>
+</head>
+<body>
+    <h3></h3>
+    <form id="infoForm">
+        <div class="content-wrapper">
+            <div class="content">
+                <span class="span_title">아이디</span>
+                <input type="text" class="input_text" placeholder="아이디" name="id" >
+                <span class="span_title">비밀번호</span>
+                <input type="text" class="input_text" placeholder="비밀번호" name="password">
+                <span class="span_title">생년월일</span>
+                <input type="text" class="input_text" placeholder="생년월일(YYMMDD)" name="birth">
+            </div>
+            <div class="content">
+                <div class="content-2nd">
+                    <div class="div-flex">
+                        <span class="span_title">공연코드</span>
+                        <input type="text" class="input_text" placeholder="공연코드" name="musicalCode">
+                    </div>
+                    <div class="div-flex">
+                        <span class="span_title">인원수</span>
+                        <input type="text" class="input_text" placeholder="인원수" name="nop">
+                    </div>
+                </div>
+                <div class="content-2nd">
+                    <div class="div-flex">
+                        <span class="span_title">날짜</span>
+                        <input type="text" class="input_text" placeholder="날짜(YYYY-MM-DD)" name="date">
+                    </div>
+                    <div class="div-flex">
+                        <span class="span_title">회차</span>
+                        <input type="text" class="input_text" placeholder="회차" name="roung">
+                    </div>
+                </div>
+            </div>
+            <div class="content">
+                <div class="content-2nd">
+                    <div class="div-flex">
+                        <span class="span_title">시작열</span>
+                        <input type="text" class="input_text" placeholder="시작열" name="startRow">
+                    </div>
+                    <div class="div-flex">
+                        <span class="span_title">종료열</span>
+                        <input type="text" class="input_text" placeholder="종료열" name="endRow">
+                    </div>
+                </div>
+                <div class="content-2nd">
+                    <div class="div-flex">
+                        <span class="span_title">시작좌석번호</span>
+                        <input type="text" class="input_text" placeholder="시작좌석번호" name="startSeat">
+                    </div>
+                    <div class="div-flex">
+                        <span class="span_title">끝좌석번호</span>
+                        <input type="text" class="input_text" placeholder="끝좌석번호" name="endSeat">
+                    </div>
+                </div>
+            </div>
+            <button id="btn_run" type="button">실행</button>
+        </div>
+    </form>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+<script>
+    $(function(){
+        $('#btn_run').on("click",function () {
+
+            var form = $("#infoForm").serialize();
+
+            console.log(form);
+            $.ajax({
+                type: "post",
+                url: "/interparkTicketing",
+                data: form,
+                dataType: 'json',
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                success: function (data) {
+                    alert("success");
+                    console.log(data);
+                },
+                error: function (request, status, error) {
+                    console.log("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
