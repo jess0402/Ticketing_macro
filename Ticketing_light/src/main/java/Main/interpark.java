@@ -7,12 +7,15 @@ import org.openqa.selenium.support.ui.Select;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-public class Main {
+public class interpark {
 
     public static String WEB_DRIVER_ID = "webdriver.chrome.driver";
     public static String WEB_DRIVER_PATH = "C:\\dev\\chromedriver-win64\\chromedriver-win64\\chromedriver.exe";
@@ -39,6 +42,7 @@ public class Main {
         int startSeat = Integer.parseInt(properties.getProperty("startSeat"));
         int endSeat = Integer.parseInt(properties.getProperty("endSeat"));
 
+        List<String> wishSeats = getWishSeatList(properties);
 
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
@@ -72,20 +76,27 @@ public class Main {
             System.out.println("팝업창 없음");
         }
 
-        String nowTime = "";
-
         /* 실제 티켓팅 할때만 주석해제 */
+//        String nowTime = "";
 //        while(true){
 //            nowTime = getCurrentTime("yyyyMMddHHmmss");
 //            if(nowTime.equals(ticketingTime)) break;
 //        }
 
-        /* 예매하기 버튼 클릭 */
-        driver.findElement(By.xpath("//*[@id=\"productSide\"]/div/div[2]/a[1]")).click();
+        /* 대기창 없어지고 예매하기 버튼 눌릴때까지 반복 */
+        while(true){
+            try{
+                /* 예매하기 버튼 클릭 */
+                driver.findElement(By.xpath("//*[@id=\"productSide\"]/div/div[2]/a[1]")).click();
+                break;
+            } catch(Exception e){
+                System.out.println("Error occurred: " + e.getMessage());
+                Thread.sleep(100);
+                continue;
+            }
+        }
 
         Thread.sleep(500);
-
-
 
         /* 예매창으로 포커스 변경 */
         Set<String> set = driver.getWindowHandles();
@@ -113,27 +124,40 @@ public class Main {
             }
         }
 
-        /* 좌석 선택 - 몽땅 프로퍼티로 바꾸기 */
-        int seatCnt = 0;
+        Thread.sleep(500); // 좌석선택창 뜰때까지 0.5초 대기
 
-        driver.switchTo().frame(driver.findElement(By.id("ifrmSeatDetail")));
+        // 좌석선택창으로 제대로 들어가질때까지 loop
+        while(true){
+            try {
+                driver.switchTo().frame(driver.findElement(By.id("ifrmSeatDetail")));
+                break;
+            } catch (Exception e){
+                System.out.println("Error occurred: " + e.getMessage());
+                Thread.sleep(100);
+                continue;
+            }
+        }
+
         Thread.sleep(500);
 
         // 좌석 형식
-        // 레베카) [VIP석] 객석1층-18열-12
-        // 벤허) [R석] 1층-09열-5
+        // 레베카: 신한카드 블루스퀘어) [VIP석] 객석1층-18열-12
+        // 벤허: LG아트센터 서울 LG SIGNATURE 홀) [R석] 1층-09열-5
+        // 그날들: 대구 계명아트센터) [VIP석] 1층-C블럭7열-3
+
         List<WebElement> seats = driver.findElements(By.className("stySeat"));
 //        System.out.println(seats.get(0).getAttribute("title"));
 
         // 23~26번째 좌석만 select
         /* 좌석선택 코드 1 */
+        int seatCnt = 0;
         selectSeat:
         for(WebElement el : seats){
             String seat = el.getAttribute("title");
             if(seat.contains("VIP석")){
                 if(seat.contains("1층")){
                     for(int i = startRow; i <= endRow; i++){
-                        String row = Integer.toString(i) + "열";
+                        String row = "C블럭" + Integer.toString(i) + "열";
                         if(seat.contains(row)){
                             for(int j = startSeat; j <= endSeat; j++){
                                 String col = "-" + j;
@@ -193,8 +217,31 @@ public class Main {
         return new SimpleDateFormat(timeFormat).format(System.currentTimeMillis());
     }
 
+    /* 희망 좌석 리스트 세팅 */
+    private static List<String> getWishSeatList(Properties properties) {
+
+        List<String> wishSeatList = new ArrayList<>();
+
+        int totalWishSeatCnt = Integer.parseInt(properties.getProperty("wish.seat.cnt"));
+        for(int i = 1; i <= totalWishSeatCnt; i++){
+            String seatName = "seat" + Integer.toString(i);
+            wishSeatList.add("[title='" + properties.getProperty(seatName) + "']");
+        }
+        return wishSeatList;
+    }
+
     /* 프로퍼티 파일 호출 */
     private static Properties getProperties(String propertiesPath){
+        Properties properties = new Properties();
+        try (InputStreamReader reader = new InputStreamReader(new FileInputStream(propertiesPath), StandardCharsets.UTF_8)) {
+            properties.load(reader);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return properties;
+    }
+
+    private static Properties getProperties_backup(String propertiesPath){
         Properties properties = new Properties();
         FileInputStream input = null;
         try {
